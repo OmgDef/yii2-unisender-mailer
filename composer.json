@@ -1,0 +1,22 @@
+{
+    "name": "omgdef/yii2-unisender-mailer",
+    "description": "This extension implements MailerInterface for sending emails via UniSender",
+    "type": "yii2-extension",
+    "keywords": ["yii2","extension"," unisender"," mailer"],
+    "license": "BSD-4-Clause",
+    "authors": [
+        {
+            "name": "Yuri Sergeev",
+            "email": "omgdef@gmail.com"
+        }
+    ],
+    "require": {
+        "yiisoft/yii2": "*",
+        "omgdef/yii2-unisender": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "omgdef\\yii\\unisender\\mailer\\": ""
+        }
+    }
+}
