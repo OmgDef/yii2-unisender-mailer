@@ -122,7 +122,6 @@ class Mailer extends BaseMailer
         $uniSender = Yii::$app->get($this->uniSenderComponent);
         $response = $uniSender->sendQuery('sendEmail', $requestBody);
 
-        var_dump($response);
         return !isset($response['error']);
 
     }
