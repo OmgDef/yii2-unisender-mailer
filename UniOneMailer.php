@@ -130,7 +130,6 @@ class UniOneMailer extends BaseMailer
         $uniSender = Yii::$app->get($this->uniOneComponent);
         $response = $uniSender->send($requestBody);
 
-        var_dump($response);
         return isset($response['status']) && $response['status'] === 'success';
     }
 }
