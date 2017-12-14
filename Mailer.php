@@ -1,4 +1,5 @@
 <?php
+
 namespace omgdef\yii\unisender\mailer;
 
 use omgdef\unisender\UniSenderWrapper;
@@ -111,9 +112,14 @@ class Mailer extends BaseMailer
             $requestBody['headers'] = "Reply-To: {$replyTo}\n";
         }
 
+        $formattedAttachments = [];
         $attachments = $message->getAttachments();
         if ($attachments) {
-            $requestBody['attachments'] = $attachments;
+            foreach ($attachments as $attachment) {
+                $formattedAttachments[$attachment['name']] = $attachment['content'];
+            }
+
+            $requestBody['attachments'] = $formattedAttachments;
         }
 
         /**

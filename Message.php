@@ -3,7 +3,8 @@
 namespace omgdef\yii\unisender\mailer;
 
 
-use yii\base\NotSupportedException;
+use yii\base\Exception;
+use yii\base\InvalidCallException;
 use yii\mail\BaseMessage;
 
 class Message extends BaseMessage
@@ -18,6 +19,7 @@ class Message extends BaseMessage
     protected $bcc;
     protected $subject;
     protected $attachments = [];
+    protected $embed = [];
 
     /**
      * @inheritdoc
@@ -166,6 +168,22 @@ class Message extends BaseMessage
     }
 
     /**
+     * @return string|null
+     */
+    public function getHtmlBody()
+    {
+        return $this->htmlBody;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getTextBody()
+    {
+        return $this->textBody;
+    }
+
+    /**
      * @return mixed
      */
     public function getBody()
@@ -187,7 +205,7 @@ class Message extends BaseMessage
                 $name = basename($fileName);
             }
 
-            $this->addAttachment($name, $content);
+            $this->addAttachment($name, $content, mime_content_type($fileName));
         }
 
         return $this;
@@ -198,12 +216,18 @@ class Message extends BaseMessage
      */
     public function attachContent($content, array $options = [])
     {
-        if (!empty($options['fileName'])) {
-            $name = $options['fileName'];
-        } else {
-            $name = 'Attachment.txt';
+        if (empty($options['fileName'])) {
+            throw new InvalidCallException('You have to specify "fileName"');
         }
-        $this->addAttachment($name, $content);
+
+        if (empty($options['contentType'])) {
+            throw new InvalidCallException('You have to specify "contentType"');
+        }
+
+        $name = $options['fileName'];
+        $type = $options['contentType'];
+
+        $this->addAttachment($name, $content, $type);
 
         return $this;
     }
@@ -211,17 +235,35 @@ class Message extends BaseMessage
     /**
      * @param $name
      * @param $content
+     * @param $type
      */
-    protected function addAttachment($name, $content)
+    protected function addAttachment($name, $content, $type)
     {
         $idx = 1;
         $newName = $name;
-        while (array_key_exists($newName, $this->attachments)) {
-            $newName = $name;
-            $newName = "($idx)" . $newName;
-            $idx++;
+
+        while (true) {
+            $found = false;
+            foreach ($this->attachments as $attachment) {
+                if ($attachment['name'] === $newName) {
+                    $found = true;
+                    break;
+                }
+            }
+
+            if ($found) {
+                $newName = "($idx)$name";
+                $idx++;
+            } else {
+                break;
+            }
         }
-        $this->attachments[$newName] = $content;
+
+        $this->attachments[] = [
+            'name' => $newName,
+            'content' => $content,
+            'type' => $type,
+        ];
     }
 
     /**
@@ -233,11 +275,23 @@ class Message extends BaseMessage
     }
 
     /**
+     * @return array
+     */
+    public function getEmbed()
+    {
+        return $this->embed;
+    }
+
+    /**
      * @inheritdoc
      */
     public function embed($fileName, array $options = [])
     {
-        throw new NotSupportedException('embed can not be implemented via Unisender');
+        if (is_file($fileName)) {
+            return $this->addEmbed(file_get_contents($fileName), mime_content_type($fileName));
+        }
+
+        throw new Exception("File {$fileName} not found");
     }
 
     /**
@@ -245,7 +299,28 @@ class Message extends BaseMessage
      */
     public function embedContent($content, array $options = [])
     {
-        throw new NotSupportedException('embed can not be implemented via Unisender');
+        if (empty($options['contentType'])) {
+            throw new InvalidCallException('You have to specify "contentType"');
+        }
+
+        return $this->addEmbed($content, $options['contentType']);
+    }
+
+    /**
+     * @param $content
+     * @param $type
+     * @return string
+     */
+    protected function addEmbed($content, $type)
+    {
+        $name = strtoupper(uniqid());
+        $this->embed[] = [
+            'name' => $name,
+            'content' => $content,
+            'type' => $type,
+        ];
+
+        return $name;
     }
 
     /**
