@@ -100,12 +100,12 @@ class UniOneMailer extends BaseMailer
 
         $attachments = $message->getAttachments();
         foreach ($attachments as &$attachment) {
-            $attachment['content'] = base64_encode('content');
+            $attachment['content'] = base64_encode($attachment['content']);
         }
 
         $embed = $message->getEmbed();
         foreach ($embed as &$embedItem) {
-            $embedItem['content'] = base64_encode('content');
+            $embedItem['content'] = base64_encode($embedItem['content']);
         }
 
         $requestBody = [
